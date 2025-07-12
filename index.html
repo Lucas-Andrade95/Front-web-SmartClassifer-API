@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Categorization - Lucas V. Andrade</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e6ed;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        textarea:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+        }
+
+        textarea {
+            min-height: 120px;
+        }
+
+        .categories-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .category-tag {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .remove-category {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .remove-category:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .result.success {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .result.error {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .result-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-content {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .add-category-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+
+        .add-category-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .categories-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SmartClassifier API</h1>
+        <p class="subtitle">Envie uma mensagem e obtenha a categoria mais adequada</p>
+        
+        <form id="categorizationForm">
+            <div class="form-group">
+                <label for="message">Mensagem:</label>
+                <textarea 
+                    id="message" 
+                    name="message" 
+                    placeholder="Digite sua mensagem aqui... (ex: Quero um orçamento)"
+                    required
+                ></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="categoryInput">Categorias:</label>
+                <input 
+                    type="text" 
+                    id="categoryInput" 
+                    placeholder="Digite uma categoria e pressione Enter"
+                >
+                <button type="button" class="add-category-btn" onclick="addCategory()">
+                    Adicionar Categoria
+                </button>
+                <div class="categories-container" id="categoriesContainer">
+                    <!-- Categorias padrão -->
+                </div>
+            </div>
+            
+            <button type="submit" class="btn" id="submitBtn">
+                Analisar Mensagem
+            </button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processando sua mensagem...</p>
+        </div>
+        
+        <div class="result" id="result">
+            <div class="result-title" id="resultTitle"></div>
+            <div class="result-content" id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Variável para armazenar as categorias
+        let categories = [];
+
+        // Adicionar categorias padrão
+        const defaultCategories = ["Comercial", "Financeiro", "Operacional", "Expedição"];
+        defaultCategories.forEach(category => {
+            categories.push(category);
+            renderCategories();
+        });
+
+        // Função para adicionar categoria
+        function addCategory() {
+            const input = document.getElementById('categoryInput');
+            const category = input.value.trim();
+            
+            if (category && !categories.includes(category)) {
+                categories.push(category);
+                renderCategories();
+                input.value = '';
+            }
+        }
+
+        // Função para remover categoria
+        function removeCategory(index) {
+            categories.splice(index, 1);
+            renderCategories();
+        }
+
+        // Função para renderizar as categorias
+        function renderCategories() {
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = '';
+            
+            categories.forEach((category, index) => {
+                const tag = document.createElement('div');
+                tag.className = 'category-tag';
+                tag.innerHTML = `
+                    ${category}
+                    <button class="remove-category" onclick="removeCategory(${index})">×</button>
+                `;
+                container.appendChild(tag);
+            });
+        }
+
+        // Event listener para adicionar categoria com Enter
+        document.getElementById('categoryInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addCategory();
+            }
+        });
+
+        // Função para enviar a requisição
+        async function sendRequest(message, categories) {
+            const apiUrl = 'https://lucas-v-andrade.app.n8n.cloud/webhook/7aa00a60-99ec-45f6-9f6e-9c1189d3a6cd';
+            
+            const requestBody = {
+                message: message,
+                categories: categories
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        // Função para exibir resultado
+        function showResult(success, title, content) {
+            const resultDiv = document.getElementById('result');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultContent = document.getElementById('resultContent');
+            
+            resultDiv.className = `result ${success ? 'success' : 'error'}`;
+            resultTitle.innerHTML = `${success ? '✅' : '❌'} ${title}`;
+            resultContent.textContent = content;
+            resultDiv.style.display = 'block';
+        }
+
+        // Função para mostrar/esconder loading
+        function toggleLoading(show) {
+            const loading = document.getElementById('loading');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            loading.style.display = show ? 'block' : 'none';
+            submitBtn.disabled = show;
+            submitBtn.textContent = show ? 'Processando...' : 'Analisar Mensagem';
+        }
+
+        // Event listener para o formulário
+        document.getElementById('categorizationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const message = document.getElementById('message').value.trim();
+            
+            if (!message) {
+                showResult(false, 'Erro', 'Por favor, digite uma mensagem.');
+                return;
+            }
+            
+            if (categories.length === 0) {
+                showResult(false, 'Erro', 'Por favor, adicione pelo menos uma categoria.');
+                return;
+            }
+            
+            // Esconder resultado anterior
+            document.getElementById('result').style.display = 'none';
+            
+            // Mostrar loading
+            toggleLoading(true);
+            
+            try {
+                const response = await sendRequest(message, categories);
+                
+                // Processar resposta
+                if (response && response.length > 0 && response[0].output && response[0].output.category) {
+                    const category = response[0].output.category;
+                    showResult(true, 'Categoria Identificada', `A categoria mais adequada para sua mensagem é: "${category}"`);
+                } else {
+                    showResult(false, 'Erro', 'Resposta da API em formato inesperado.');
+                }
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                showResult(false, 'Erro de Conexão', `Não foi possível processar sua requisição: ${error.message}`);
+            } finally {
+                toggleLoading(false);
+            }
+        });
+
+        // Renderizar categorias iniciais
+        renderCategories();
+    </script>
+</body>
+</html>
