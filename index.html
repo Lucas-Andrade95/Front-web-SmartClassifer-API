@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Categorization - Lucas V. Andrade</title>
+    <title>SmartClassifier API</title>
     <style>
         * {
             margin: 0;
@@ -310,7 +310,7 @@
         let categories = [];
 
         // Adicionar categorias padrão
-        const defaultCategories = ["Comercial", "Financeiro", "Operacional", "Expedição"];
+        const defaultCategories = ["Problema Técnico", "Elogio", "Dúvida", "Spam", "Urgente"];
         defaultCategories.forEach(category => {
             categories.push(category);
             renderCategories();
